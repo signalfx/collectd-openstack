@@ -11,7 +11,7 @@ METRIC_NAME_PREFIX = "openstack."
 CINDER_LIMIT_PREFIX = "cinder.limit."
 CINDER_VOLUME_PREFIX = "cinder.volume."
 CINDER_SNAPSHOT_PREFIX = "cinder.snapshot."
-DEFAULT_CINDER_CLIENT_VERSION = "3"
+DEFAULT_CINDER_CLIENT_VERSION = "2.0"
 
 
 class CinderMetrics:

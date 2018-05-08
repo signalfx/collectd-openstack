@@ -2,10 +2,6 @@ import sys
 from os import path
 import inspect
 
-# scriptname = inspect.getframeinfo(inspect.currentframe()).filename
-# scriptpath = path.dirname(path.abspath(scriptname))
-# sys.path.insert(0, path.join(scriptpath, 'lib'))
-
 from keystoneauth1 import identity
 from keystoneauth1 import session
 from novaclient import client
@@ -34,23 +30,6 @@ NOVA_HYPERVISOR_METRICS = [
 NOVA_HYPERVISOR_DIMS = [
     "id"
 ]
-
-# NOVA_HYPERVISOR_PROPS = [
-#     "cpu_info_model",
-#     "cpu_info_topology_cells",
-#     "cpu_info_topology_cores",
-#     "cpu_info_topology_sockets",
-#     "cpu_info_topology_threads",
-#     "cpu_info_vendor",
-#     "host_ip",
-#     "hypervisor_type",
-#     "hypervisor_version",
-#     "service_disabled_reason",
-#     "service_host",
-#     "service_id",
-#     "state",
-#     "status"
-# ]
 
 NOVA_HYPERVISOR_PROPS = [
     "cpu_info_model",
@@ -108,13 +87,7 @@ NOVA_SERVER_PROPS = [
 
 NOVA_LIMIT_METRICS = [
     "maxImageMeta",
-    "maxPersonality",
-    "maxPersonalitySize",
-    "maxSecurityGroupRules",
     "maxSecurityGroups",
-    "maxServerGroupMembers",
-    "maxServerGroups",
-    "maxServerMeta",
     "maxTotalCores",
     "maxTotalFloatingIps",
     "maxTotalInstances",
@@ -124,8 +97,7 @@ NOVA_LIMIT_METRICS = [
     "totalFloatingIpsUsed",
     "totalInstancesUsed",
     "totalRAMUsed",
-    "totalSecurityGroupsUsed",
-    "totalServerGroupsUsed"
+    "totalSecurityGroupsUsed"
 ]
 
 

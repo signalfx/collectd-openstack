@@ -1,6 +1,7 @@
 import collectd
 from NovaMetrics import NovaMetrics
 from CinderMetrics import CinderMetrics
+from NeutronMetrics import NeutronMetrics
 
 PLUGIN_NAME = "openstack"
 CONF_INTERVAL = 10
@@ -66,6 +67,16 @@ def config_callback(conf):
         )
         OPENSTACK_CLIENT['cinder'] = cindermetrics
 
+        neutronmetrics = NeutronMetrics(
+            plugin_conf['authurl'],
+            plugin_conf['username'],
+            plugin_conf['password'],
+            project_name,
+            project_domainid,
+            user_domainid
+        )
+        OPENSTACK_CLIENT['neutron'] = neutronmetrics
+
     except Exception as e:
         collectd.error(
             "Failed to authenticate Openstack client due to {0}".format(e)
@@ -78,6 +89,7 @@ def read_callback():
         serverMetrics = OPENSTACK_CLIENT['nova'].collect_server_metrics()
         limitMetrics = OPENSTACK_CLIENT['nova'].collect_limit_metrics()
         blockStorageMetrics = OPENSTACK_CLIENT['cinder'].collect_cinder_metrics()
+        networkMetrics = OPENSTACK_CLIENT['neutron'].collect_neutron_metrics()
 
         for hypervisor in hypervisorMetrics:
             metrics, dims, props = hypervisorMetrics[hypervisor]
@@ -99,15 +111,15 @@ def read_callback():
             for (metric, value) in metrics:
                 dispatch_values(metric, value, dims, props)
 
+        for network in networkMetrics:
+            metrics, dims, props = networkMetrics[network]
+            for (metric, value) in metrics:
+                dispatch_values(metric, value, dims, props)
+
     except Exception as e:
         collectd.error(
             "Failed to fetch Openstack metrics due to {0}".format(e)
         )
-
-
-def init_callback():
-    collectd.register_read(read_callback, interval=CONF_INTERVAL)
-    return True
 
 
 def _formatDimsForSignalFx(dims):

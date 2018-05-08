@@ -1,0 +1,4 @@
+keystoneauth1
+python-novaclient
+python-cinderclient
+python-neutronclient
