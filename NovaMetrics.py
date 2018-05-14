@@ -49,6 +49,8 @@ NOVA_HYPERVISOR_UPTIME_METRICS = [
 ]
 
 NOVA_SERVER_DIAG_METIRCS = [
+    "cpu0_time",
+    "cpu1_time",
     "memory",
     "memory-actual",
     "memory-rss",

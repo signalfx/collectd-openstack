@@ -3,10 +3,6 @@ from NovaMetrics import NovaMetrics
 from CinderMetrics import CinderMetrics
 from NeutronMetrics import NeutronMetrics
 
-PLUGIN_NAME = "openstack"
-CONF_INTERVAL = 10
-OPENSTACK_CLIENT = {}
-
 
 def config_callback(conf):
     """Receive configuration block"""
@@ -15,6 +11,7 @@ def config_callback(conf):
     user_domainid = 'default'
     interval = 10
     testing = False
+    OPENSTACK_CLIENT = {}
     plugin_conf = {}
 
     required_keys = frozenset(('authurl', 'username', 'password'))
@@ -30,8 +27,7 @@ def config_callback(conf):
             elif node.key.lower() == "userdomainid":
                 user_domainid = node.values[0]
             elif node.key.lower() == "interval":
-                global CONF_INTERVAL
-                CONF_INTERVAL = node.values[0]
+                interval = node.values[0]
         except Exception as e:
             collectd.error(
                 "Failed to load the configuration {0} due to {1}".format(
@@ -82,14 +78,16 @@ def config_callback(conf):
             "Failed to authenticate Openstack client due to {0}".format(e)
         )
 
+    collectd.register_read(read_callback, interval, data=OPENSTACK_CLIENT, name=project_name)
 
-def read_callback():
+
+def read_callback(data):
     try:
-        hypervisorMetrics = OPENSTACK_CLIENT['nova'].collect_hypervisor_metrics()
-        serverMetrics = OPENSTACK_CLIENT['nova'].collect_server_metrics()
-        limitMetrics = OPENSTACK_CLIENT['nova'].collect_limit_metrics()
-        blockStorageMetrics = OPENSTACK_CLIENT['cinder'].collect_cinder_metrics()
-        networkMetrics = OPENSTACK_CLIENT['neutron'].collect_neutron_metrics()
+        hypervisorMetrics = data['nova'].collect_hypervisor_metrics()
+        serverMetrics = data['nova'].collect_server_metrics()
+        limitMetrics = data['nova'].collect_limit_metrics()
+        blockStorageMetrics = data['cinder'].collect_cinder_metrics()
+        networkMetrics = data['neutron'].collect_neutron_metrics()
 
         for hypervisor in hypervisorMetrics:
             metrics, dims, props = hypervisorMetrics[hypervisor]
@@ -99,7 +97,10 @@ def read_callback():
         for server in serverMetrics:
             metrics, dims, props = serverMetrics[server]
             for (metric, value) in metrics:
-                dispatch_values(metric, value, dims, props)
+                if metric.split(".")[3] in ('rx', 'rx_drop', 'rx_packets', 'tx', 'tx_drop', 'tx_packets'):
+                    dispatch_values(metric, value, dims, props, 'counter')
+                else:
+                    dispatch_values(metric, value, dims, props)
 
         for limit in limitMetrics:
             metrics, dims, props = limitMetrics[limit]
@@ -127,14 +128,17 @@ def _formatDimsForSignalFx(dims):
     return "[{0}]".format(formatted) if formatted != "" else ""
 
 
-def dispatch_values(metric, value, dims, props):
-    val = collectd.Values(type="gauge")
+def dispatch_values(metric, value, dims, props, metric_type="gauge"):
+    val = collectd.Values(type=metric_type)
     val.type_instance = "{0}{1}".format(metric, _formatDimsForSignalFx(dims))
-    val.plugin = PLUGIN_NAME
+    val.plugin = 'openstack'
     val.plugin_instance = _formatDimsForSignalFx(props)
     val.values = [value]
     val.dispatch()
 
 
-collectd.register_config(config_callback)
-collectd.register_read(read_callback, interval=CONF_INTERVAL)
+if __name__ == "__main__":
+    # run standalone
+    pass
+else:
+    collectd.register_config(config_callback)

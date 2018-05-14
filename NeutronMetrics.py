@@ -12,6 +12,7 @@ NEUTRON_NETWORK_PREFIX = "neutron.network."
 NEUTRON_SUBNET_PREFIX = "neutron.subnet."
 NEUTRON_ROUTER_PREFIX = 'neutron.router.'
 NEUTRON_FLOATIP_PREFIX = 'neutron.floatingip.'
+NEUTRON_SG_PREFIX = 'neutron.securitygroup.'
 NEUTRON_QUOTA_PREFIX = "neutron.quota."
 DEFAULT_NEUTRON_CLIENT_VERSION = "2.0"
 
@@ -56,7 +57,7 @@ class NeutronMetrics:
         self.collect_subnet_metrics(metrics)
         self.collect_router_metrics(metrics)
         self.collect_floatingip_metrics(metrics)
-        self.collect_quota_metrics(metrics)
+        self.collect_sg_metrics(metrics)
 
         props["project_name"] = self._project_name
         props["project_domain_name"] = self._project_domain_id
@@ -128,12 +129,19 @@ class NeutronMetrics:
                 'count'
             ), data_tenant['floatingip']['count']))
 
-    def collect_quota_metrics(self, metrics):
-        quotas = self.neutron.list_quotas()['quotas']
+    def collect_sg_metrics(self, metrics):
+        sgs = self.neutron.list_security_groups()['security_groups']
 
-        for quota in quotas:
+        data_tenant = dict()
+        data_tenant['sg'] = {'count': 0}
+
+        for sg in sgs:
+            data_tenant['sg']['count'] += 1
+
+        if data_tenant is not None:
             metrics.append(("{0}{1}{2}".format(
                 METRIC_NAME_PREFIX,
-                NEUTRON_QUOTA_PREFIX,
-                quota
-            ), quotas[quota]))
+                NEUTRON_SG_PREFIX,
+                'count'
+            ), data_tenant['sg']['count']))
+
