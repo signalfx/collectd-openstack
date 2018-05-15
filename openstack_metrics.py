@@ -88,6 +88,7 @@ def read_callback(data):
         limitMetrics = data['nova'].collect_limit_metrics()
         blockStorageMetrics = data['cinder'].collect_cinder_metrics()
         networkMetrics = data['neutron'].collect_neutron_metrics()
+        serverCounterMetrics = ['cpu0_time', 'cpu1_time', 'rx', 'rx_packets', 'tx', 'tx_packets']
 
         for hypervisor in hypervisorMetrics:
             metrics, dims, props = hypervisorMetrics[hypervisor]
@@ -97,7 +98,7 @@ def read_callback(data):
         for server in serverMetrics:
             metrics, dims, props = serverMetrics[server]
             for (metric, value) in metrics:
-                if metric.split(".")[3] in ('rx', 'rx_drop', 'rx_packets', 'tx', 'tx_drop', 'tx_packets'):
+                if metric.split(".")[3] in serverCounterMetrics:
                     dispatch_values(metric, value, dims, props, 'counter')
                 else:
                     dispatch_values(metric, value, dims, props)

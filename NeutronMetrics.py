@@ -13,7 +13,6 @@ NEUTRON_SUBNET_PREFIX = "neutron.subnet."
 NEUTRON_ROUTER_PREFIX = 'neutron.router.'
 NEUTRON_FLOATIP_PREFIX = 'neutron.floatingip.'
 NEUTRON_SG_PREFIX = 'neutron.securitygroup.'
-NEUTRON_QUOTA_PREFIX = "neutron.quota."
 DEFAULT_NEUTRON_CLIENT_VERSION = "2.0"
 
 
