@@ -1,0 +1,16 @@
+FROM quay.io/signalfuse/collectd:latest
+
+# Disable everything we can except elasticsearch
+ENV COLLECTD_INTERVAL=3 COLLECTD_HOSTNAME=solr-test DISABLE_AGGREGATION=true DISABLE_CPU=true DISABLE_CPUFREQ=true DISABLE_DF=true DISABLE_DISK=true DISABLE_DOCKER=true DISABLE_HOST_MONITORING=true DISABLE_INTERFACE=true DISABLE_LOAD=true DISABLE_MEMORY=true DISABLE_PROTOCOLS=true DISABLE_VMEM=true DISABLE_UPTIME=true
+
+# Debian is super minimalistic
+RUN apt-get update &&\
+    apt-get install -yq netcat curl
+
+CMD /.docker/setup_openstack
+ADD integration-test/setup_openstack /.docker/setup_openstack
+
+## The context of the image build should be the root dir of this repo!!
+ADD openstack_metrics.py /opt/collectd-openstack/
+ADD urllib_ssl_handler.py /opt/collectd-openstack/
+ADD integration-test/10-openstack-test.conf /etc/collectd/managed_config/
