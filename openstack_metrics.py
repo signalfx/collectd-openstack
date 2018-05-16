@@ -13,6 +13,7 @@ def config_callback(conf):
     testing = False
     OPENSTACK_CLIENT = {}
     plugin_conf = {}
+    custom_dimensions = {}
 
     required_keys = frozenset(('authurl', 'username', 'password'))
 
@@ -26,6 +27,11 @@ def config_callback(conf):
                 project_domainid = node.values[0]
             elif node.key.lower() == "userdomainid":
                 user_domainid = node.values[0]
+            elif node.key.lower() == 'dimension':
+                if len(node.values) == 2:
+                    custom_dimensions.update({node.values[0]: node.values[1]})
+                else:
+                    collectd.warning("WARNING: Check configuration setting for %s" % node.key)
             elif node.key.lower() == "interval":
                 interval = node.values[0]
         except Exception as e:
@@ -75,6 +81,7 @@ def config_callback(conf):
             user_domainid
         )
         OPENSTACK_CLIENT['neutron'] = neutronmetrics
+        OPENSTACK_CLIENT['custdims'] = custom_dimensions
 
     except Exception as e:
         collectd.error(
@@ -95,11 +102,13 @@ def read_callback(data):
 
         for hypervisor in hypervisorMetrics:
             metrics, dims, props = hypervisorMetrics[hypervisor]
+            dims = preapre_dims(dims, data['custdims'])
             for (metric, value) in metrics:
                 dispatch_values(metric, value, dims, props)
 
         for server in serverMetrics:
             metrics, dims, props = serverMetrics[server]
+            dims = preapre_dims(dims, data['custdims'])
             for (metric, value) in metrics:
                 if metric.split(".")[3] in serverCounterMetrics:
                     dispatch_values(metric, value, dims, props, 'counter')
@@ -108,16 +117,19 @@ def read_callback(data):
 
         for limit in limitMetrics:
             metrics, dims, props = limitMetrics[limit]
+            dims = preapre_dims(dims, data['custdims'])
             for (metric, value) in metrics:
                 dispatch_values(metric, value, dims, props)
 
         for storage in blockStorageMetrics:
             metrics, dims, props = blockStorageMetrics[storage]
+            dims = preapre_dims(dims, data['custdims'])
             for (metric, value) in metrics:
                 dispatch_values(metric, value, dims, props)
 
         for network in networkMetrics:
             metrics, dims, props = networkMetrics[network]
+            dims = preapre_dims(dims, data['custdims'])
             for (metric, value) in metrics:
                 dispatch_values(metric, value, dims, props)
 
@@ -125,6 +137,16 @@ def read_callback(data):
         collectd.error(
             "Failed to fetch Openstack metrics due to {0}".format(e)
         )
+
+
+def preapre_dims(dims, custdims):
+    if bool(custdims) is False:
+        return dims
+
+    for (key, val) in custdims.iteritems():
+        dims[key] = val
+
+    return dims
 
 
 def _formatDimsForSignalFx(dims):
