@@ -1,0 +1,16 @@
+#!/bin/bash
+
+wait_for () {
+    host=$1
+    while ! nc -z $host
+    do
+      sleep 0.2
+    done
+}
+
+for host in openstack
+do
+  wait_for $host
+done
+
+exec /.docker/run.sh

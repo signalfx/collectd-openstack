@@ -42,6 +42,9 @@ def config_callback(conf):
         except KeyError:
             raise KeyError("Missing required config setting: %s" % key)
 
+    if testing:
+        return plugin_conf
+
     try:
         novametrics = NovaMetrics(
             plugin_conf['authurl'],

@@ -1,0 +1,29 @@
+version: '2'
+services:
+  collectd:
+    build:
+      context: ..
+      dockerfile: integration-test/Dockerfile.collectd
+    environment:
+      SF_API_TOKEN: testing
+      SF_INGEST_HOST: fake_sfx
+    depends_on:
+      - fake_sfx
+      - openstack
+
+  openstack:
+    image: ewindisch/dockenstack
+    privileged: true
+
+  fake_sfx:
+    build:
+      context: .
+      dockerfile: Dockerfile.sink
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    depends_on:
+      - collectd
+
