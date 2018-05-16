@@ -102,36 +102,31 @@ def read_callback(data):
 
         for hypervisor in hypervisorMetrics:
             metrics, dims, props = hypervisorMetrics[hypervisor]
-            dims = preapre_dims(dims, data['custdims'])
             for (metric, value) in metrics:
-                dispatch_values(metric, value, dims, props)
+                dispatch_values(metric, value, dims, props, data['custdims'])
 
         for server in serverMetrics:
             metrics, dims, props = serverMetrics[server]
-            dims = preapre_dims(dims, data['custdims'])
             for (metric, value) in metrics:
                 if metric.split(".")[3] in serverCounterMetrics:
-                    dispatch_values(metric, value, dims, props, 'counter')
+                    dispatch_values(metric, value, dims, props, data['custdims'], 'counter')
                 else:
-                    dispatch_values(metric, value, dims, props)
+                    dispatch_values(metric, value, dims, props, data['custdims'])
 
         for limit in limitMetrics:
             metrics, dims, props = limitMetrics[limit]
-            dims = preapre_dims(dims, data['custdims'])
             for (metric, value) in metrics:
-                dispatch_values(metric, value, dims, props)
+                dispatch_values(metric, value, dims, props, data['custdims'])
 
         for storage in blockStorageMetrics:
             metrics, dims, props = blockStorageMetrics[storage]
-            dims = preapre_dims(dims, data['custdims'])
             for (metric, value) in metrics:
-                dispatch_values(metric, value, dims, props)
+                dispatch_values(metric, value, dims, props, data['custdims'])
 
         for network in networkMetrics:
             metrics, dims, props = networkMetrics[network]
-            dims = preapre_dims(dims, data['custdims'])
             for (metric, value) in metrics:
-                dispatch_values(metric, value, dims, props)
+                dispatch_values(metric, value, dims, props, data['custdims'])
 
     except Exception as e:
         collectd.error(
@@ -139,7 +134,7 @@ def read_callback(data):
         )
 
 
-def preapre_dims(dims, custdims):
+def prepare_dims(dims, custdims):
     if bool(custdims) is False:
         return dims
 
@@ -154,7 +149,8 @@ def _formatDimsForSignalFx(dims):
     return "[{0}]".format(formatted) if formatted != "" else ""
 
 
-def dispatch_values(metric, value, dims, props, metric_type="gauge"):
+def dispatch_values(metric, value, dims, props, custdims, metric_type="gauge"):
+    dims = prepare_dims(dims, custdims)
     val = collectd.Values(type=metric_type)
     val.type_instance = "{0}{1}".format(metric, _formatDimsForSignalFx(dims))
     val.plugin = 'openstack'
