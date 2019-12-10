@@ -229,7 +229,7 @@ class NovaMetrics:
 
             # Sum up network stats since they are reported per network device
             if diagMetric in diagNetworkMetrics:
-                attrs = serverDiagnostics.keys()
+                attrs = list(serverDiagnostics.keys())
                 for a in attrs:
                     if a.endswith(diagMetric):
                         tmpValue = serverDiagnostics.get(a, 0)
