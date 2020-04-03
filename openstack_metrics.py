@@ -11,6 +11,7 @@ def config_callback(conf):
     user_domainid = "default"
     interval = 10
     testing = False
+    ssl_verify = True
     OPENSTACK_CLIENT = {}
     plugin_conf = {}
     custom_dimensions = {}
@@ -34,6 +35,8 @@ def config_callback(conf):
                     collectd.warning("WARNING: Check configuration setting for %s" % node.key)
             elif node.key.lower() == "interval":
                 interval = node.values[0]
+            elif node.key.lower() == "sslverify":
+                ssl_verify = node.values[0]
         except Exception as e:
             collectd.error("Failed to load the configuration {0} due to {1}".format(node.key, e))
             raise e
@@ -55,6 +58,7 @@ def config_callback(conf):
             project_name,
             project_domainid,
             user_domainid,
+            ssl_verify
         )
         OPENSTACK_CLIENT["nova"] = novametrics
 
@@ -65,6 +69,7 @@ def config_callback(conf):
             project_name,
             project_domainid,
             user_domainid,
+            ssl_verify
         )
         OPENSTACK_CLIENT["cinder"] = cindermetrics
 
@@ -75,6 +80,7 @@ def config_callback(conf):
             project_name,
             project_domainid,
             user_domainid,
+            ssl_verify
         )
         OPENSTACK_CLIENT["neutron"] = neutronmetrics
         OPENSTACK_CLIENT["custdims"] = custom_dimensions

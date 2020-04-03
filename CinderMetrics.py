@@ -22,7 +22,8 @@ class CinderMetrics:
         password,
         project_name,
         project_domain_id,
-        user_domain_id
+        user_domain_id,
+        ssl_verify
     ):
         self._auth_url = auth_url
         self._username = username
@@ -30,6 +31,7 @@ class CinderMetrics:
         self._project_name = project_name
         self._project_domain_id = project_domain_id
         self._user_domain_id = user_domain_id
+        self._ssl_verify = ssl_verify
 
         self.auth = identity.Password(
             auth_url=self._auth_url,
@@ -39,7 +41,7 @@ class CinderMetrics:
             project_domain_id=self._project_domain_id,
             user_domain_id=self._user_domain_id
         )
-        self.sess = session.Session(auth=self.auth)
+        self.sess = session.Session(auth=self.auth, verify=self._ssl_verify)
         self.cinder = client.Client(
             DEFAULT_CINDER_CLIENT_VERSION,
             session=self.sess

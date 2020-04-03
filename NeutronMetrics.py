@@ -24,7 +24,8 @@ class NeutronMetrics:
         password,
         project_name,
         project_domain_id,
-        user_domain_id
+        user_domain_id,
+        ssl_verify
     ):
         self._auth_url = auth_url
         self._username = username
@@ -32,6 +33,7 @@ class NeutronMetrics:
         self._project_name = project_name
         self._project_domain_id = project_domain_id
         self._user_domain_id = user_domain_id
+        self._ssl_verify = ssl_verify
 
         self.auth = identity.Password(
             auth_url=self._auth_url,
@@ -41,7 +43,7 @@ class NeutronMetrics:
             project_domain_id=self._project_domain_id,
             user_domain_id=self._user_domain_id
         )
-        self.sess = session.Session(auth=self.auth)
+        self.sess = session.Session(auth=self.auth, verify=self._ssl_verify)
         self.neutron = client.Client(
             DEFAULT_NEUTRON_CLIENT_VERSION,
             session=self.sess
