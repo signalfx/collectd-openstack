@@ -27,7 +27,7 @@ Optional configurations keys include:
 * ProjectDomainId - Domain to which the project belong to, 'default'
 * UserDomainId - Domain to which the user belong to, 'default'
 * Dimension - Add extra dimensions to your metrics
-
+* SSLVerify - Validate SSL certificate, 'True'
 
 Note that multiple OpenStack projects can be configured in the same file.
 
@@ -52,6 +52,7 @@ LoadPlugin python
         ProjectName "alt_demo"
         ProjectDomainId "default"
         UserDomainId "default"
+        SSLVerify False
     </Module>
 </Plugin>
 ```

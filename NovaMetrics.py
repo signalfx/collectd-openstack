@@ -111,7 +111,8 @@ class NovaMetrics:
         password,
         project_name,
         project_domain_id,
-        user_domain_id
+        user_domain_id,
+        ssl_verify
     ):
         self._auth_url = auth_url
         self._username = username
@@ -119,6 +120,7 @@ class NovaMetrics:
         self._project_name = project_name
         self._project_domain_id = project_domain_id
         self._user_domain_id = user_domain_id
+        self._ssl_verify = ssl_verify
 
         self.auth = identity.Password(
             auth_url=self._auth_url,
@@ -128,7 +130,7 @@ class NovaMetrics:
             project_domain_id=self._project_domain_id,
             user_domain_id=self._user_domain_id
         )
-        self.sess = session.Session(auth=self.auth)
+        self.sess = session.Session(auth=self.auth, verify=self._ssl_verify)
         self.nova = client.Client(
             DEFAULT_NOVA_CLIENT_VERSION,
             session=self.sess
