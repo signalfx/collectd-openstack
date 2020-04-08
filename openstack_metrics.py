@@ -153,7 +153,7 @@ def dispatch_values(metric, value, dims, props, custdims, metric_type="gauge"):
     val.type_instance = "{0}{1}".format(metric, _formatDimsForSignalFx(dims))
     val.plugin = "openstack"
     val.plugin_instance = _formatDimsForSignalFx(props)
-    val.values = [value]
+    val.values = [float(value)]
     val.dispatch()
 
 
