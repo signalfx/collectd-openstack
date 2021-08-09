@@ -143,10 +143,14 @@ class NovaMetrics:
 
         try:
             hypervisor = self.nova.hypervisors.get(hypervisorId)
-            uptime = self.nova.hypervisors.uptime(hypervisorId)
         except Exception:
             # In case of error, do nothing
             hypervisor = None
+        
+        try:
+            uptime = self.nova.hypervisors.uptime(hypervisorId)
+        except Exception:
+            # In case of error, do nothing
             uptime = None
 
         # Create metrics
