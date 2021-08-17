@@ -112,6 +112,7 @@ class NovaMetrics:
         project_name,
         project_domain_id,
         user_domain_id,
+        region_name,
         ssl_verify
     ):
         self._auth_url = auth_url
@@ -120,6 +121,7 @@ class NovaMetrics:
         self._project_name = project_name
         self._project_domain_id = project_domain_id
         self._user_domain_id = user_domain_id
+        self._region_name = region_name
         self._ssl_verify = ssl_verify
 
         self.auth = identity.Password(
@@ -133,7 +135,8 @@ class NovaMetrics:
         self.sess = session.Session(auth=self.auth, verify=self._ssl_verify)
         self.nova = client.Client(
             DEFAULT_NOVA_CLIENT_VERSION,
-            session=self.sess
+            session=self.sess,
+            region_name=self._region_name
         )
 
     def _build_hypervisor_metrics(self, hypervisorId):
@@ -204,6 +207,8 @@ class NovaMetrics:
         props["project_name"] = self._project_name
         props["project_domain_name"] = self._project_domain_id
         props["user_domain_name"] = self._user_domain_id
+        if self._region_name:
+            props["region_name"] = self._region_name
 
         return (metrics, dims, props)
 
@@ -284,6 +289,8 @@ class NovaMetrics:
         props["project_name"] = self._project_name
         props["project_domain_name"] = self._project_domain_id
         props["user_domain_name"] = self._user_domain_id
+        if self._region_name:
+            props["region_name"] = self._region_name
 
         return (metrics, dims, props)
 
@@ -330,5 +337,7 @@ class NovaMetrics:
         props["project_name"] = self._project_name
         props["project_domain_name"] = self._project_domain_id
         props["user_domain_name"] = self._user_domain_id
+        if self._region_name:
+            props["region_name"] = self._region_name
 
         return {'0': (metrics, dims, props)}
