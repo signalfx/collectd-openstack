@@ -26,6 +26,7 @@ Optional configurations keys include:
 * ProjectName - Name of the Project to be monitored, default 'demo'
 * ProjectDomainId - Domain to which the project belong to, 'default'
 * UserDomainId - Domain to which the user belong to, 'default'
+* RegionName - The region name for URL discovery, defaults to the first region if multiple regions are available.
 * Dimension - Add extra dimensions to your metrics
 * SSLVerify - Validate SSL certificate, 'True'
 

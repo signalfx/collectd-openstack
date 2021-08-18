@@ -9,6 +9,7 @@ def config_callback(conf):
     project_name = "demo"
     project_domainid = "default"
     user_domainid = "default"
+    region_name = None
     interval = 10
     testing = False
     ssl_verify = True
@@ -28,6 +29,9 @@ def config_callback(conf):
                 project_domainid = node.values[0]
             elif node.key.lower() == "userdomainid":
                 user_domainid = node.values[0]
+            elif node.key.lower() == "regionname":
+                if node.values[0]:
+                    region_name = node.values[0]
             elif node.key.lower() == "dimension":
                 if len(node.values) == 2:
                     custom_dimensions.update({node.values[0]: node.values[1]})
@@ -58,6 +62,7 @@ def config_callback(conf):
             project_name,
             project_domainid,
             user_domainid,
+            region_name,
             ssl_verify
         )
         OPENSTACK_CLIENT["nova"] = novametrics
@@ -69,6 +74,7 @@ def config_callback(conf):
             project_name,
             project_domainid,
             user_domainid,
+            region_name,
             ssl_verify
         )
         OPENSTACK_CLIENT["cinder"] = cindermetrics
@@ -80,6 +86,7 @@ def config_callback(conf):
             project_name,
             project_domainid,
             user_domainid,
+            region_name,
             ssl_verify
         )
         OPENSTACK_CLIENT["neutron"] = neutronmetrics
