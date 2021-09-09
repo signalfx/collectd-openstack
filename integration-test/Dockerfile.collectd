@@ -7,10 +7,14 @@ ENV COLLECTD_INTERVAL=3 COLLECTD_HOSTNAME=solr-test DISABLE_AGGREGATION=true DIS
 RUN apt-get update &&\
     apt-get install -yq netcat curl
 
-CMD /.docker/setup_openstack
-ADD integration-test/setup_openstack /.docker/setup_openstack
-
 ## The context of the image build should be the root dir of this repo!!
-ADD openstack_metrics.py /opt/collectd-openstack/
-ADD urllib_ssl_handler.py /opt/collectd-openstack/
+ADD integration-test/setup_openstack /.docker/setup_openstack
+CMD /.docker/setup_openstack
+
+RUN python -m pip install -U pip==20.3.4
+
+ADD requirements-python2.txt /opt/collectd-openstack/requirements.txt
+RUN python -m pip install -r /opt/collectd-openstack/requirements.txt
+
+ADD *.py /opt/collectd-openstack/
 ADD integration-test/10-openstack-test.conf /etc/collectd/managed_config/

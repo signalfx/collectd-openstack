@@ -1,11 +1,10 @@
-import sys
-from os import path
-import inspect
+from concurrent.futures import ThreadPoolExecutor
+import re
 
 from keystoneauth1 import identity
 from keystoneauth1 import session
 from novaclient import client
-import re
+
 
 METRIC_NAME_PREFIX = "openstack."
 NOVA_HYPERVISOR_PREFIX = "nova.hypervisor."
@@ -48,9 +47,8 @@ NOVA_HYPERVISOR_UPTIME_METRICS = [
     "uptime"
 ]
 
-NOVA_SERVER_DIAG_METIRCS = [
-    "cpu0_time",
-    "cpu1_time",
+CPU_TIMES = tuple("cpu{0}_time".format(n) for n in range(32))
+NOVA_SERVER_DIAG_METRICS = CPU_TIMES + (
     "memory",
     "memory-actual",
     "memory-rss",
@@ -70,7 +68,7 @@ NOVA_SERVER_DIAG_METIRCS = [
     "tx",
     "tx_drop",
     "tx_packets"
-]
+)
 
 NOVA_SERVER_DIMS = [
     "id",
@@ -113,7 +111,10 @@ class NovaMetrics:
         project_domain_id,
         user_domain_id,
         region_name,
-        ssl_verify
+        ssl_verify,
+        http_timeout,
+        request_batch_size,
+        list_servers_search_opts={},
     ):
         self._auth_url = auth_url
         self._username = username
@@ -123,6 +124,8 @@ class NovaMetrics:
         self._user_domain_id = user_domain_id
         self._region_name = region_name
         self._ssl_verify = ssl_verify
+        self._tpe = ThreadPoolExecutor(request_batch_size)
+        self._list_servers_search_opts = list_servers_search_opts
 
         self.auth = identity.Password(
             auth_url=self._auth_url,
@@ -132,11 +135,11 @@ class NovaMetrics:
             project_domain_id=self._project_domain_id,
             user_domain_id=self._user_domain_id
         )
-        self.sess = session.Session(auth=self.auth, verify=self._ssl_verify)
+        self.sess = session.Session(auth=self.auth, verify=self._ssl_verify, timeout=http_timeout)
         self.nova = client.Client(
             DEFAULT_NOVA_CLIENT_VERSION,
             session=self.sess,
-            region_name=self._region_name
+            region_name=self._region_name,
         )
 
     def _build_hypervisor_metrics(self, hypervisorId):
@@ -235,7 +238,7 @@ class NovaMetrics:
             "tx_packets"
         )
 
-        for diagMetric in NOVA_SERVER_DIAG_METIRCS:
+        for diagMetric in NOVA_SERVER_DIAG_METRICS:
             diagValue = None
 
             # Sum up network stats since they are reported per network device
@@ -285,7 +288,12 @@ class NovaMetrics:
 
                 props[propName] = propValue
 
-        dims["project_id"] = self.nova.client.get_project_id()
+        project_id = self.nova.client.get_project_id()
+        tenant_id = getattr(server, 'tenant_id')
+        if tenant_id is not None and tenant_id != project_id:
+            project_id = tenant_id
+
+        dims["project_id"] = project_id
         props["project_name"] = self._project_name
         props["project_domain_name"] = self._project_domain_id
         props["user_domain_name"] = self._user_domain_id
@@ -307,12 +315,13 @@ class NovaMetrics:
         return hypervisorMetrics
 
     def collect_server_metrics(self):
-        serverList = self.nova.servers.list()
+        serverList = self.nova.servers.list(search_opts=self._list_servers_search_opts)
 
         serverMetrics = {}
 
-        for server in serverList:
-            serverMetrics[server.id] = self._build_server_metrics(server.id)
+        futures = [(server.id, self._tpe.submit(self._build_server_metrics, server.id)) for server in serverList]
+        for server_id, future in futures:
+            serverMetrics[server_id] = future.result()
 
         return serverMetrics
 

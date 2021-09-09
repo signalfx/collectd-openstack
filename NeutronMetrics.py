@@ -1,11 +1,8 @@
-import sys
-from os import path
-import inspect
+from concurrent.futures import ThreadPoolExecutor
 
 from keystoneauth1 import identity
 from keystoneauth1 import session
 from neutronclient.neutron import client
-import re
 
 METRIC_NAME_PREFIX = "openstack."
 NEUTRON_NETWORK_PREFIX = "neutron.network."
@@ -26,7 +23,8 @@ class NeutronMetrics:
         project_domain_id,
         user_domain_id,
         region_name,
-        ssl_verify
+        ssl_verify,
+        http_timeout
     ):
         self._auth_url = auth_url
         self._username = username
@@ -45,7 +43,7 @@ class NeutronMetrics:
             project_domain_id=self._project_domain_id,
             user_domain_id=self._user_domain_id
         )
-        self.sess = session.Session(auth=self.auth, verify=self._ssl_verify)
+        self.sess = session.Session(auth=self.auth, verify=self._ssl_verify, timeout=http_timeout)
         self.neutron = client.Client(
             DEFAULT_NEUTRON_CLIENT_VERSION,
             session=self.sess,
