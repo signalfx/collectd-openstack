@@ -1,16 +1,15 @@
 #!/bin/bash
 
-wait_for () {
+set -x
+
+wait_for_devstack() {
     host=$1
-    while ! nc -z $host
+    while ! curl -f http://devstack/identity/v3
     do
       sleep 0.2
     done
 }
 
-for host in openstack
-do
-  wait_for $host
-done
+wait_for_devstack
 
 exec /.docker/run.sh

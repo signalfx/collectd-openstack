@@ -9,11 +9,30 @@ services:
       SF_INGEST_HOST: fake_sfx
     depends_on:
       - fake_sfx
-      - openstack
+      - devstack
+      - devstack-init
 
-  openstack:
-    image: ewindisch/dockenstack
+  devstack:
+    image: devstack
+    container_name: devstack
+    # required for systemd
     privileged: true
+    volumes:
+      - /lib/modules:/lib/modules:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    ports:
+      - "8090:80"
+    environment:
+      container: docker
+    command: /lib/systemd/systemd
+
+  devstack-init:
+    image: docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: "docker exec devstack systemctl start devstack"
+    depends_on:
+      - devstack
 
   fake_sfx:
     build:
