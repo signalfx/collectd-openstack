@@ -33,6 +33,7 @@ Optional configurations keys include:
 * HTTPTimeout - The keystone http session timeout, in seconds, for all requests. None by default.
 * RequestBatchSize - The maximum number of concurrent requests for server metrics. 5 by default.
 * QueryServerMetrics - Whether to query for Nova metrics. True by default.
+* QueryHypervisorMetrics - Whether to query for hypervisor metrics. True by default, disable for Openstack-on-Openstack environments.
 * NovaListServersSearchOpts - A yaml representation of a search options dictionary for Nova servers to query. Expanded to query parameters for https://docs.openstack.org/api-ref/compute/#list-servers.
 
 Note that multiple OpenStack projects can be configured in the same file.
