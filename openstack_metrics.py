@@ -26,6 +26,7 @@ def config_callback(conf):
     nova_list_servers_search_opts = {}
 
     query_server_metrics = True
+    query_hypervisor_metrics = True
 
     required_keys = frozenset(("authurl", "username", "password"))
 
@@ -57,6 +58,8 @@ def config_callback(conf):
                 request_batch_size = int(node.values[0])
             elif node.key.lower() == "queryservermetrics":
                 query_server_metrics = node.values[0]
+            elif node.key.lower() == "queryhypervisormetrics":
+                query_hypervisor_metrics = node.values[0]
             elif node.key.lower() == "novalistserverssearchopts":
                 nova_list_servers_search_opts = yaml.load(node.values[0], Loader=yaml.FullLoader)
                 if not isinstance(nova_list_servers_search_opts, dict):
@@ -68,6 +71,7 @@ def config_callback(conf):
             raise e
 
     OPENSTACK_CLIENT["query_server_metrics"] = query_server_metrics
+    OPENSTACK_CLIENT["query_hypervisor_metrics"] = query_hypervisor_metrics
 
     for key in required_keys:
         try:
@@ -130,14 +134,16 @@ def config_callback(conf):
 def read_callback(data):
     try:
         custom_dims = data["custdims"]
-        to_dispatch = metrics_to_dispatch(data["nova"].collect_hypervisor_metrics, custom_dims, "hypervisor")
+
+        to_dispatch = metrics_to_dispatch(data["nova"].collect_limit_metrics, custom_dims, "limit")
+        to_dispatch += metrics_to_dispatch(data["cinder"].collect_cinder_metrics, custom_dims, "block storage")
+        to_dispatch += metrics_to_dispatch(data["neutron"].collect_neutron_metrics, custom_dims, "network")
 
         if data["query_server_metrics"]:
             to_dispatch += server_metrics_to_dispatch(data)
 
-        to_dispatch += metrics_to_dispatch(data["nova"].collect_limit_metrics, custom_dims, "limit")
-        to_dispatch += metrics_to_dispatch(data["cinder"].collect_cinder_metrics, custom_dims, "block storage")
-        to_dispatch += metrics_to_dispatch(data["neutron"].collect_neutron_metrics, custom_dims, "network")
+        if data["query_hypervisor_metrics"]:
+            to_dispatch += metrics_to_dispatch(data["nova"].collect_hypervisor_metrics, custom_dims, "hypervisor")
 
         for metrics in to_dispatch:
             dispatch_values(*metrics)

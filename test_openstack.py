@@ -144,6 +144,7 @@ def test_with_default_metrics(mock_openstack):
         ConfigOption("HTTPTimeout", (123.456,)),
         ConfigOption("RequestBatchSize", (100,)),
         ConfigOption("QueryServerMetrics", (True,)),
+        ConfigOption("QueryHypervisorMetrics", (True,)),
         ConfigOption("NovaListServersSearchOpts", ('{ all_tenants: "TRUE", status: "ACTIVE" }',)),
     ]
 
