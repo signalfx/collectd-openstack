@@ -3,6 +3,7 @@ import yaml
 from CinderMetrics import CinderMetrics
 from NeutronMetrics import NeutronMetrics
 from NovaMetrics import NovaMetrics
+from IronicMetrics import IronicMetrics
 
 import collectd
 
@@ -95,6 +96,20 @@ def config_callback(conf):
         )
         OPENSTACK_CLIENT["nova"] = novametrics
 
+        ironicmetrics = IronicMetrics(
+            auth_url=plugin_conf["authurl"],
+            username=plugin_conf["username"],
+            password=plugin_conf["password"],
+            project_name=project_name,
+            project_domain_id=project_domainid,
+            user_domain_id=user_domainid,
+            region_name=region_name,
+            ssl_verify=ssl_verify,
+            http_timeout=http_timeout,
+            request_batch_size=request_batch_size
+        )
+        OPENSTACK_CLIENT["ironic"] = ironicmetrics
+
         cindermetrics = CinderMetrics(
             auth_url=plugin_conf["authurl"],
             username=plugin_conf["username"],
@@ -138,6 +153,7 @@ def read_callback(data):
         to_dispatch = metrics_to_dispatch(data["nova"].collect_limit_metrics, custom_dims, "limit")
         to_dispatch += metrics_to_dispatch(data["cinder"].collect_cinder_metrics, custom_dims, "block storage")
         to_dispatch += metrics_to_dispatch(data["neutron"].collect_neutron_metrics, custom_dims, "network")
+        to_dispatch += metrics_to_dispatch(data["ironic"].collect_ironic_metrics, custom_dims, "bare metal")
 
         if data["query_server_metrics"]:
             to_dispatch += server_metrics_to_dispatch(data)
