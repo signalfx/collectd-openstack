@@ -78,6 +78,7 @@ NOVA_SERVER_PROPS = [
     "status",
     "user_id",
     "hostId",
+    "name",
     "flavor",
     "OS-EXT-AZ:availability_zone",
     "OS-EXT-SRV-ATTR:hypervisor_hostname",
