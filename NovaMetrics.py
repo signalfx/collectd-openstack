@@ -41,6 +41,7 @@ NOVA_HYPERVISOR_PROPS = [
     "state",
     "status",
     "hypervisor_hostname",
+
 ]
 
 NOVA_HYPERVISOR_UPTIME_METRICS = [
